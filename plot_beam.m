@@ -1,4 +1,8 @@
 function plot_beam(x,y,t,sys)
+    %% PLOT_BEAM 
+    % Plots a beam for animating 2DOF manipulator
+
+    %% Plot the beam
     plt.width = 0.1;
     plt.m1Cnr = [0 sys.l1 sys.l1 0 0;
                 0 0 plt.width plt.width 0;] - [sys.l1/2; plt.width/2];

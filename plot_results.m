@@ -1,4 +1,7 @@
 function [] = plot_results(sys,ctrl,sim,res)
+%% PLOT_RESULTS 
+% Plots various figures for paper
+
 %% Unpack results
 res.q = res.x(:,1:2);
 res.p = res.x(:,3:4);
@@ -146,13 +149,11 @@ controllers = [
                controller(sys,2,2,1);
                controller(sys,2,2,2);
                ];
-
-
 for i=1:size(controllers,1)
-    %% Run simulation
+    % Run simulation
     ode = @(t,x) sim.dx(x(1:2),x(3:4),controllers(i).u(t,x(1:2),x(3:4)));
     [t,x] = ode45(ode,[0 10],[0;1;0;1],odeset('RelTol',1e-12));
-    %% Plot output
+    % Plot output
     res.t = t;
     res.q = x(:,1:2);
     res.p = x(:,3:4);
@@ -166,7 +167,6 @@ for i=1:size(controllers,1)
     hold on;
     xlabel('q_1','FontSize',25);
     ylabel('q_2','FontSize',25);
- 
     subplot(2,1,2);
     plot(res.t,log(res.Hd),'LineWidth',3);
     hold on;

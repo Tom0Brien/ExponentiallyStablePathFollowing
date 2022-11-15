@@ -1,45 +1,46 @@
 function ctrl = controller(sys,Kp,Kd,K_alpha)
-% CONTROLLER - Generates a controller for a 2DOF manipulator with user 
-% provided gains Kp, Kd and K_alpha
+%% CONTROLLER
+% Generates a controller for a 2DOF manipulator with user provided gains 
+% Kp, Kd and K_alpha
 
-% Symbolic variables
-syms q1 q2 z1 z2 
-q_sym = [q1 q2].';
+%% Symbolic variables
+syms z1 z2 
 z_sym = [z1 z2].';
+
+%% System dimensions
 n = sys.n ;
 
-% Desired path
+%% Desired path
 ctrl.qd = @(q) sin(q(1));
 ctrl.qp = @(q) [q(1); ctrl.qd(q(1))];
-ctrl.fz = @(q) [q(1); q(2) - [0,1]*ctrl.qp(q(1))];
-ctrl.fzb = @(q) [zeros(1,1) eye(1)]*ctrl.fz(q);
-ctrl.fz1 = @(q) [q(1)];
-ctrl.fzi = @(z) [z(1); z(2) + [0,1]*ctrl.qp(z(1))];
-ctrl.dfzidzSYM = matlabFunction(jacobian(ctrl.fzi(z_sym),z_sym),'vars',z_sym);
-ctrl.dfzidz = @(z) ctrl.dfzidzSYM(z(1),z(2));
+ctrl.fz = @(q) [q(1); q(2) - [zeros(n-1,1) eye(n-1)]*ctrl.qp(q(1))];
+ctrl.fzb = @(q) [zeros(sys.n-1,1) eye(n-1)]*ctrl.fz(q);
+ctrl.fz1 = @(q) q(1);
+ctrl.fzi = @(z) [z(1); z(2) + [zeros(n-1,1) eye(n-1)]*ctrl.qp(z(1))];
+ctrl.dfzidz= matlabFunction(jacobian(ctrl.fzi(z_sym),z_sym),'vars',{z_sym});
 
-% Kinetic-potential energy function
+%% Kinetic-potential energy function
 ctrl.Kp = Kp*eye(n-1);
 ctrl.Vd = @(q) 0.5*ctrl.fzb(q).'*ctrl.Kp*ctrl.fzb(q);
-ctrl.dfzbdqSYM = matlabFunction(jacobian(ctrl.fzb(q_sym),q_sym),'vars',q_sym);
-ctrl.dfzbdq = @(q) ctrl.dfzbdqSYM(q(1),q(2));
+ctrl.dfzbdq = matlabFunction(jacobian(ctrl.fzb(sys.q_sym),sys.q_sym),'vars',{sys.q_sym});
 ctrl.dVddq = @(q) ctrl.dfzbdq(q).'*ctrl.Kp*ctrl.fzb(q);
 ctrl.dVdDpt = @(q) zeros(2,1);
 
-% Vector field
+%% Vector field
 ctrl.phi = @(s) 1; % regulates speed on the path
 ctrl.K_alpha = K_alpha*eye(n); 
 ctrl.vpb = @(q) ctrl.dfzidz(ctrl.fz(q))*[1; 0]*ctrl.phi(ctrl.fz1(q));
 ctrl.vdb = @(q) ctrl.vpb(q) - ctrl.K_alpha*ctrl.dVddq(q);
 
-% Control law
+%% Momentum error coordinates
 ctrl.pd = @(q) sys.M(q)*ctrl.vdb(q);
 ctrl.ptilde = @(q,p) p - ctrl.pd(q);
-ctrl.dpddqSYM =  matlabFunction(jacobian(ctrl.pd(q_sym),q_sym),'vars',q_sym);
-ctrl.dpddq = @(q) ctrl.dpddqSYM(q(1),q(2));
+ctrl.dpddq =  matlabFunction(jacobian(ctrl.pd(sys.q_sym),sys.q_sym),'vars',{sys.q_sym});
 
-%closed loop energy
+%% Closed loop energy
 ctrl.Hd = @(q,p) 0.5*ctrl.ptilde(q,p).'*ctrl.ptilde(q,p) + ctrl.Vd(q);
+
+%% Control law
 ctrl.Kd = Kd*eye(n);
 ctrl.ubar = @(t,q,p) - ctrl.Kd*ctrl.ptilde(q,p) - sys.M(q)\ctrl.dVddq(q);
 ctrl.u = @(t,q,p) sys.G(q)\(sys.dHdq(q,p) + sys.D(q)*sys.dHdp(q,p) + ctrl.dpddq(q)*(sys.M(q)\p) + (-sys.D(q))*ctrl.ptilde(q,p) + ctrl.ubar(t,q,p));
