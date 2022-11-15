@@ -1,4 +1,5 @@
 function [] = animate(sys,res,play_video)
+% ANIMATE Animates a 2DOF robotic manipulator
 %% Unpack results
 res.q = res.x(:,1:2);
 res.p = res.x(:,3:4);

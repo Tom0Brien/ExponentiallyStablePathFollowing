@@ -1,4 +1,5 @@
 function sys = model()
+% MODEL Generates a structure defining a 2DOF robotic manipulator
 %% Symbolic variables
 syms q1 q2 p1 p2
 q_sym = [q1 q2].';

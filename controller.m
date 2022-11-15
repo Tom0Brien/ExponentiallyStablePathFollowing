@@ -1,5 +1,6 @@
 function ctrl = controller(sys,Kp,Kd,K_alpha)
-% CONTROLLER - Generates a controller with user provided gains Kp, Kd and K_alpha
+% CONTROLLER - Generates a controller for a 2DOF manipulator with user 
+% provided gains Kp, Kd and K_alpha
 
 % Symbolic variables
 syms q1 q2 z1 z2 
@@ -20,9 +21,9 @@ ctrl.dfzidz = @(z) ctrl.dfzidzSYM(z(1),z(2));
 % Kinetic-potential energy function
 ctrl.Kp = Kp*eye(n-1);
 ctrl.Vd = @(q) 0.5*ctrl.fzb(q).'*ctrl.Kp*ctrl.fzb(q);
-sys.dfzbdqSYM = matlabFunction(jacobian(ctrl.fzb(q_sym),q_sym),'vars',q_sym);
-sys.dfzbdq = @(q) sys.dfzbdqSYM(q(1),q(2));
-ctrl.dVddq = @(q) sys.dfzbdq(q).'*ctrl.Kp*ctrl.fzb(q);
+ctrl.dfzbdqSYM = matlabFunction(jacobian(ctrl.fzb(q_sym),q_sym),'vars',q_sym);
+ctrl.dfzbdq = @(q) ctrl.dfzbdqSYM(q(1),q(2));
+ctrl.dVddq = @(q) ctrl.dfzbdq(q).'*ctrl.Kp*ctrl.fzb(q);
 ctrl.dVdDpt = @(q) zeros(2,1);
 
 % Vector field
