@@ -22,14 +22,13 @@ ctrl.dfzidz= matlabFunction(jacobian(ctrl.fzi(z_sym),z_sym),'vars',{z_sym});
 %% Kinetic-potential energy function
 ctrl.Kp = Kp*eye(n-1);
 ctrl.Vd = @(q) 0.5*ctrl.fzb(q).'*ctrl.Kp*ctrl.fzb(q);
-ctrl.dfzbdq = matlabFunction(jacobian(ctrl.fzb(sys.q_sym),sys.q_sym),'vars',{sys.q_sym});
-ctrl.dVddq = @(q) ctrl.dfzbdq(q).'*ctrl.Kp*ctrl.fzb(q);
-ctrl.dVdDpt = @(q) zeros(2,1);
 
 %% Vector field
 ctrl.phi = @(s) 1; % regulates speed on the path
-ctrl.K_alpha = K_alpha*eye(n); 
+ctrl.dfzbdq = matlabFunction(jacobian(ctrl.fzb(sys.q_sym),sys.q_sym),'vars',{sys.q_sym});
+ctrl.dVddq = @(q) ctrl.dfzbdq(q).'*ctrl.Kp*ctrl.fzb(q);
 ctrl.vpb = @(q) ctrl.dfzidz(ctrl.fz(q))*[1; 0]*ctrl.phi(ctrl.fz1(q));
+ctrl.K_alpha = K_alpha*eye(n); 
 ctrl.vdb = @(q) ctrl.vpb(q) - ctrl.K_alpha*ctrl.dVddq(q);
 
 %% Momentum error coordinates
@@ -43,7 +42,7 @@ ctrl.Hd = @(q,p) 0.5*ctrl.ptilde(q,p).'*ctrl.ptilde(q,p) + ctrl.Vd(q);
 %% Control law
 ctrl.Kd = Kd*eye(n);
 ctrl.ubar = @(t,q,p) - ctrl.Kd*ctrl.ptilde(q,p) - sys.M(q)\ctrl.dVddq(q);
-ctrl.u = @(t,q,p) sys.G(q)\(sys.dHdq(q,p) + sys.D(q)*sys.dHdp(q,p) + ctrl.dpddq(q)*(sys.M(q)\p) + (-sys.D(q))*ctrl.ptilde(q,p) + ctrl.ubar(t,q,p));
+ctrl.u = @(t,q,p) sys.G(q)\(sys.dHdq(q,p) + sys.D(q)*sys.dHdp(q,p) + ctrl.dpddq(q)*(sys.M(q)\p) -sys.D(q)*ctrl.ptilde(q,p) + ctrl.ubar(t,q,p));
 
 end
 
