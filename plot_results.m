@@ -49,6 +49,7 @@ for i = 1:length(X)
 end
 surf(X,Y,Z);
 hold on;
+grid off;
 x = linspace(-4,4,100);
 y = zeros(size(x,2),1);
 for i=1:size(x,2)
@@ -102,13 +103,13 @@ fig6 = figure(6);
 % Specify set of initial conditions
 pd = @(q) (sys.M(q)*ctrl.vdb(q)).';
 X0 = [0.5, 1, pd([0.5;1]);
-      0.5, -0.5, (sys.M([0.5;-0.5])*ctrl.vdb([0.5;-0.5])).';
-      1, 1, (sys.M([1;1])*ctrl.vdb([1;1])).';
-      1, 0,(sys.M([1;0])*ctrl.vdb([1;0])).';
-      1.5, 0 ,(sys.M([1.5;0])*ctrl.vdb([1.5;0])).';
-      1.5,1.5,(sys.M([1.5;1.5])*ctrl.vdb([1.5;1.5])).';
-      2,0,(sys.M([2;0])*ctrl.vdb([2;0])).';
-      2,1.5,(sys.M([2;1.5])*ctrl.vdb([2;1.5])).';
+      0.5, -0.5,  pd([0.5;-0.5]);
+      1, 1,  pd([1;1]);
+      1, 0, pd([1;0]);
+      1.5, 0 , pd([1.5;0]);
+      1.5,1.5, pd([1.5;1.5]);
+      2,0, pd([2;0]);
+      2,1.5, pd([2;1.5]);
       ];
 dt = 0.2;
 [X,Y] = meshgrid(0:dt:5,-1:dt:1.5);
@@ -142,8 +143,7 @@ grid on;
 
 %% Plot with different tuning parameters
 fig7 = figure(7);
-controllers = [
-               controller(sys,1,1,0);
+controllers = [controller(sys,1,1,0);
                controller(sys,1,1,1);
                controller(sys,2,1,1);
                controller(sys,2,2,1);
