@@ -59,7 +59,7 @@ for i=1:size(x,2)
 end
 plot3(x,y,zeros(length(x),1)+1, 'LineWidth',5,'Color','red');
 
-%% Plot path with potential function
+%% Plot path with vector field
 fig4 = figure(4);
 grid on;
 N = 4;
@@ -126,7 +126,7 @@ for i=1:size(X,1)
     end
 end
 hold on;
-quiver(X,Y,U,V,'LineWidth', 1, "Color","black", 'LineWidth',0.75)
+quiver(X,Y,U,V,'LineWidth', 1, "Color","black", 'LineWidth',0.5)
 for i=1:size(X0,1)
     % Run simulation
     ode = @(t,x) sim.dx(x(1:2),x(3:4),ctrl.u(t,x(1:2),x(3:4)));
@@ -134,9 +134,9 @@ for i=1:size(X0,1)
     % Plot output
     res.t = t;
     res.q = x(:,1:2);
-    plot(res.q(:,1),res.q(:,2),'LineWidth',3);
-    xlabel('$q_1$','FontSize',25,'Interpreter','latex');
-    ylabel('$q_2$','FontSize',25,'Interpreter','latex');
+    plot(res.q(:,1),res.q(:,2),'LineWidth',2.5);
+    xlabel('q_1','FontSize',25)
+    ylabel('q_2','FontSize',25)
 end
 x = 0:0.1:5;
 plot(x,sin(x),'--','LineWidth',4,'Color','black');
@@ -145,7 +145,7 @@ grid on;
 
 %% Plot with different tuning parameters
 fig7 = figure(7);
-controllers = [controller(sys,1,1,0.1);
+controllers = [controller(sys,1,1,0);
                controller(sys,1,1,1);
                controller(sys,2,1,1);
                controller(sys,2,2,1);
@@ -154,7 +154,7 @@ controllers = [controller(sys,1,1,0.1);
 for i=1:size(controllers,1)
     % Run simulation
     ode = @(t,x) sim.dx(x(1:2),x(3:4),controllers(i).u(t,x(1:2),x(3:4)));
-    [t,x] = ode45(ode,[0 10],[0;1.75;0;0],odeset('RelTol',1e-12));
+    [t,x] = ode45(ode,[0 10],[0;1;0;1],odeset('RelTol',1e-12));
     % Plot output
     res.t = t;
     res.q = x(:,1:2);
@@ -163,23 +163,23 @@ for i=1:size(controllers,1)
     for j=1:length(res.t)
         res.Hd(j) = controllers(i).Hd(res.q(j,:).',res.p(j,:).');
     end
-    figure(7);
-    plot(res.q(:,1),res.q(:,2),'LineWidth',3);
+    subplot(2,1,1);
+    plot(res.q(:,1),res.q(:,2),'LineWidth',2.5);
     grid on;
     hold on;
-    xlabel('$q_1$','FontSize',25,'Interpreter','latex');
-    ylabel('$q_2$','FontSize',25,'Interpreter','latex');
-     figure(8);
-    plot(res.t,log(res.Hd),'LineWidth',3);
+    xlabel('q_1','FontSize',25);
+    ylabel('q_2','FontSize',25);
+    subplot(2,1,2);
+    plot(res.t,res.Hd,'LineWidth',3);
     hold on;
     grid on;
     xlabel('t','FontSize',25);
     ylabel('log($$\tilde{H}_d$$)','FontSize',25,'Interpreter','latex');
 end
-figure(7);
+subplot(2,1,1);
 x = 0:0.1:10;
 plot(x,sin(x),'--','LineWidth',2.5,'Color','black');
-legend( 'K_p=1, K_d=1, K_{\alpha} = 0.1', ...
+legend( 'K_p=1, K_d=1, K_{\alpha} = 0', ...
         'K_p=1, K_d=1, K_{\alpha} = 1', ...
         'K_p=2, K_d=1, K_{\alpha} = 1', ...
         'K_p=2, K_d=2, K_{\alpha} = 1', ...
@@ -187,13 +187,18 @@ legend( 'K_p=1, K_d=1, K_{\alpha} = 0.1', ...
         'Desired path', ...
         'FontSize',16);
 axis([0 4 -1 2])
-figure(8);
-legend( 'K_p=1, K_d=1, K_{\alpha} = 0.1', ...
+subplot(2,1,2);
+legend( 'K_p=1, K_d=1, K_{\alpha} = 0', ...
         'K_p=1, K_d=1, K_{\alpha} = 1', ...
         'K_p=2, K_d=1, K_{\alpha} = 1', ...
         'K_p=2, K_d=2, K_{\alpha} = 1', ...
         'K_p=2, K_d=2, K_{\alpha} = 2', ...
         'FontSize',16)
-axis([0 4 -25 10])
+axis([0 4 -25 5])
 set(gca,"FontSize",20)
+figure(8);
+subplot(2,1,1);
+plot(res.u(:,1))
+subplot(2,1,2);
+plot(res.u(:,2))
 end
